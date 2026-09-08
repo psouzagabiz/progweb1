@@ -27,5 +27,5 @@ window.SITE_CONFIG = {
   LEAD_WEBHOOK_URL: "",
 
   // 5) PREÇO EXIBIDO (apenas para facilitar manutenção de texto em JS, se necessário)
-  PRICE_DISPLAY: "R$ 29,90",
+  PRICE_DISPLAY: "R$ 10,00",
 };
