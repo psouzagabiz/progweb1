@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gabriela Souza | Desenvolvedora Web</title>
+<meta name="description" content="Portfólio de Gabriela Souza — desenvolvedora web, projetos e contato.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="container nav-inner">
+    <a href="#home" class="logo">Gabriela<span>.</span></a>
+    <nav class="nav-links">
+      <a href="#home">Início</a>
+      <a href="#about">Sobre</a>
+      <a href="#skills">Habilidades</a>
+      <a href="#projects">Projetos</a>
+      <a href="#contact">Contato</a>
+    </nav>
+    <button id="theme-toggle" aria-label="Alternar tema">🌙</button>
+    <button id="menu-toggle" class="menu-btn" aria-label="Abrir menu">☰</button>
+  </div>
+</header>
+
+<main>
+  <section id="home" class="hero">
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <p class="hello">Olá, eu sou</p>
+        <h1>Gabriela Souza</h1>
+        <h2 class="typed"><span id="typed-text"></span><span class="cursor">|</span></h2>
+        <p class="hero-desc">Crio experiências web modernas, rápidas e acessíveis — do design à implementação.</p>
+        <div class="hero-buttons">
+          <a href="#projects" class="btn btn-primary">Ver Projetos</a>
+          <a href="#contact" class="btn btn-outline">Fale Comigo</a>
+        </div>
+        <div class="socials">
+          <a href="https://github.com/psouzagabiz" target="_blank" rel="noopener" aria-label="GitHub">GitHub</a>
+          <a href="mailto:gabrielapsouza31@gmail.com" aria-label="Email">Email</a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="blob"></div>
+        <div class="avatar-ring">GS</div>
+      </div>
+    </div>
+    <a href="#about" class="scroll-down" aria-label="Rolar para baixo">↓</a>
+  </section>
+
+  <section id="about" class="section">
+    <div class="container">
+      <p class="section-tag">Sobre mim</p>
+      <h2 class="section-title">Quem é Gabriela?</h2>
+      <div class="about-grid">
+        <p class="about-text">
+          Sou desenvolvedora web apaixonada por transformar ideias em interfaces bonitas e funcionais.
+          Gosto de trabalhar em todo o ciclo de um projeto: do planejamento da estrutura até os detalhes
+          finais de animação e performance. Busco sempre código limpo, boas práticas e uma ótima experiência
+          para quem usa o que eu construo.
+        </p>
+        <div class="stats">
+          <div class="stat-card"><span class="stat-number" data-target="15">0</span><span>Projetos</span></div>
+          <div class="stat-card"><span class="stat-number" data-target="3">0</span><span>Anos de estudo</span></div>
+          <div class="stat-card"><span class="stat-number" data-target="100">0</span><span>% Dedicação</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" class="section alt">
+    <div class="container">
+      <p class="section-tag">O que eu uso</p>
+      <h2 class="section-title">Habilidades</h2>
+      <div class="skills-grid">
+        <div class="skill-card"><span class="skill-icon">🌐</span><h3>HTML5</h3></div>
+        <div class="skill-card"><span class="skill-icon">🎨</span><h3>CSS3</h3></div>
+        <div class="skill-card"><span class="skill-icon">⚡</span><h3>JavaScript</h3></div>
+        <div class="skill-card"><span class="skill-icon">⚛️</span><h3>React</h3></div>
+        <div class="skill-card"><span class="skill-icon">🟢</span><h3>Node.js</h3></div>
+        <div class="skill-card"><span class="skill-icon">🗄️</span><h3>SQL</h3></div>
+        <div class="skill-card"><span class="skill-icon">🐙</span><h3>Git &amp; GitHub</h3></div>
+        <div class="skill-card"><span class="skill-icon">📱</span><h3>Design Responsivo</h3></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="section">
+    <div class="container">
+      <p class="section-tag">Meu trabalho</p>
+      <h2 class="section-title">Projetos</h2>
+      <div class="projects-grid">
+        <article class="project-card">
+          <div class="project-thumb">🧩</div>
+          <div class="project-body">
+            <h3>Projeto Um</h3>
+            <p>Aplicação web responsiva com foco em usabilidade e performance.</p>
+            <div class="tags"><span>HTML</span><span>CSS</span><span>JS</span></div>
+            <div class="project-links">
+              <a href="#" target="_blank" rel="noopener">Ver demo →</a>
+              <a href="#" target="_blank" rel="noopener">Código</a>
+            </div>
+          </div>
+        </article>
+        <article class="project-card">
+          <div class="project-thumb">📊</div>
+          <div class="project-body">
+            <h3>Projeto Dois</h3>
+            <p>Dashboard interativo consumindo dados de uma API pública.</p>
+            <div class="tags"><span>React</span><span>API</span></div>
+            <div class="project-links">
+              <a href="#" target="_blank" rel="noopener">Ver demo →</a>
+              <a href="#" target="_blank" rel="noopener">Código</a>
+            </div>
+          </div>
+        </article>
+        <article class="project-card">
+          <div class="project-thumb">🛒</div>
+          <div class="project-body">
+            <h3>Projeto Três</h3>
+            <p>E-commerce simples com carrinho de compras e checkout.</p>
+            <div class="tags"><span>Node.js</span><span>SQL</span></div>
+            <div class="project-links">
+              <a href="#" target="_blank" rel="noopener">Ver demo →</a>
+              <a href="#" target="_blank" rel="noopener">Código</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="section alt">
+    <div class="container contact-inner">
+      <p class="section-tag">Vamos conversar</p>
+      <h2 class="section-title">Contato</h2>
+      <p class="contact-desc">Tem um projeto em mente ou quer bater um papo? Me envie uma mensagem.</p>
+      <form id="contact-form" class="contact-form">
+        <div class="form-row">
+          <input type="text" name="name" placeholder="Seu nome" required>
+          <input type="email" name="email" placeholder="Seu email" required>
+        </div>
+        <textarea name="message" rows="5" placeholder="Sua mensagem" required></textarea>
+        <button type="submit" class="btn btn-primary">Enviar mensagem</button>
+        <p id="form-status" class="form-status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>© <span id="year"></span> Gabriela Souza. Feito com 💜 e código.</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
