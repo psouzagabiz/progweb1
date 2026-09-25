@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf8f5;
+  --surface: #ffffff;
+  --foreground: #2b2620;
+  --muted: #7a7266;
+  --champagne: #d9c7a3;
+  --champagne-dark: #b89b6a;
+  --border: #e8e1d5;
+  --accent: #8a6f4e;
+  --accent-dark: #6b5439;
+  --success: #3f7a5c;
+  --danger: #b5453b;
+  --warning: #b8863a;
+  --info: #3f6b8a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-champagne: var(--champagne);
+  --color-champagne-dark: var(--champagne-dark);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, .font-serif-heading {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(43, 38, 32, 0.04);
+}
+
+.input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: white;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+}
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(138, 111, 78, 0.35);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0.5rem;
+  transition: background 0.15s;
+}
+.btn-primary:hover {
+  background: var(--accent-dark);
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.btn-secondary:hover {
+  background: rgba(217, 199, 163, 0.15);
+}
