@@ -7,7 +7,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
   const body = await req.json();
-  updateChecklistItem(ctx.wedding.id, id, {
+  await updateChecklistItem(ctx.wedding.id, id, {
     nome: body.nome ?? "",
     prazo: body.prazo || null,
     responsavel: body.responsavel ?? "",
@@ -21,6 +21,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
-  deleteChecklistItem(ctx.wedding.id, id);
+  await deleteChecklistItem(ctx.wedding.id, id);
   return NextResponse.json({ ok: true });
 }

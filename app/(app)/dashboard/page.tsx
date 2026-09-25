@@ -16,9 +16,9 @@ export default async function DashboardPage() {
   if (!ctx) redirect("/login");
   const { wedding } = ctx;
 
-  const parcelas = computeParcelasComputed(wedding.id);
+  const parcelas = await computeParcelasComputed(wedding.id);
   const totals = computeDashboardTotals(parcelas, wedding.orcamento_maximo_cents);
-  const historico = listHistorico(wedding.id, 8);
+  const historico = await listHistorico(wedding.id, 8);
 
   const hoje = new Date().toISOString().slice(0, 10);
   const em7 = new Date();

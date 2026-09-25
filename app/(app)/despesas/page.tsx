@@ -8,7 +8,7 @@ import DespesasClient from "@/components/despesas/DespesasClient";
 export default async function DespesasPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
-  const despesas = listDespesas(ctx.wedding.id).map((d) => ({
+  const despesas = (await listDespesas(ctx.wedding.id)).map((d) => ({
     id: d.id,
     fornecedor_id: d.fornecedor_id,
     nome: d.nome,
@@ -25,7 +25,7 @@ export default async function DespesasPage() {
     data_primeira_fatura: d.data_primeira_fatura,
     observacoes: d.observacoes,
   }));
-  const fornecedores = listFornecedores(ctx.wedding.id).map((f) => ({ id: f.id, nome: f.nome }));
+  const fornecedores = (await listFornecedores(ctx.wedding.id)).map((f) => ({ id: f.id, nome: f.nome }));
 
   return (
     <div className="flex flex-col gap-6">

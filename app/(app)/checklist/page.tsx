@@ -8,7 +8,7 @@ import ChecklistClient from "@/components/checklist/ChecklistClient";
 export default async function ChecklistPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
-  const items = listChecklist(ctx.wedding.id).map((c) => ({
+  const items = (await listChecklist(ctx.wedding.id)).map((c) => ({
     id: c.id,
     nome: c.nome,
     prazo: c.prazo,

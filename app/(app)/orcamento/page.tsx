@@ -10,8 +10,8 @@ export default async function OrcamentoPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
   const { wedding } = ctx;
-  const categorias = listCategoriaOrcamentos(wedding.id);
-  const parcelas = computeParcelasComputed(wedding.id);
+  const categorias = await listCategoriaOrcamentos(wedding.id);
+  const parcelas = await computeParcelasComputed(wedding.id);
   const totals = computeDashboardTotals(parcelas, wedding.orcamento_maximo_cents);
 
   return (

@@ -24,13 +24,13 @@ function parseInput(body: Record<string, unknown>): DespesaInput {
 export async function GET() {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  return NextResponse.json(listDespesas(ctx.wedding.id));
+  return NextResponse.json(await listDespesas(ctx.wedding.id));
 }
 
 export async function POST(req: NextRequest) {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = await req.json();
-  const id = createDespesa(ctx.wedding.id, parseInput(body));
+  const id = await createDespesa(ctx.wedding.id, parseInput(body));
   return NextResponse.json({ id });
 }

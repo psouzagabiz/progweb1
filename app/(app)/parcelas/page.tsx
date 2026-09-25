@@ -8,7 +8,7 @@ import ParcelasClient from "@/components/parcelas/ParcelasClient";
 export default async function ParcelasPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
-  const parcelas = computeParcelasComputed(ctx.wedding.id).map((p) => ({
+  const parcelas = (await computeParcelasComputed(ctx.wedding.id)).map((p) => ({
     id: p.id,
     despesa_nome: p.despesa_nome,
     despesa_categoria: p.despesa_categoria,

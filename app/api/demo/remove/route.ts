@@ -5,6 +5,6 @@ import { removeDemoData } from "@/lib/db/repo";
 export async function POST() {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  removeDemoData(ctx.wedding.id);
+  await removeDemoData(ctx.wedding.id);
   return NextResponse.json({ ok: true });
 }

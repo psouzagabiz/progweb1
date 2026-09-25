@@ -8,7 +8,7 @@ import CalendarioClient from "@/components/calendario/CalendarioClient";
 export default async function CalendarioPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
-  const parcelas = computeParcelasComputed(ctx.wedding.id)
+  const parcelas = (await computeParcelasComputed(ctx.wedding.id))
     .filter((p) => p.status !== "cancelado")
     .map((p) => ({ id: p.id, despesa_nome: p.despesa_nome, vencimento: p.vencimento, valorCents: p.valorCents, status: p.status }));
 

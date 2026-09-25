@@ -9,8 +9,8 @@ export default async function FornecedoresPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
 
-  const fornecedores = listFornecedores(ctx.wedding.id);
-  const parcelas = computeParcelasComputed(ctx.wedding.id);
+  const fornecedores = await listFornecedores(ctx.wedding.id);
+  const parcelas = await computeParcelasComputed(ctx.wedding.id);
 
   const computed = fornecedores.map((f) => {
     const relacionadas = parcelas.filter((p) => p.fornecedor_id === f.id && p.status !== "cancelado");

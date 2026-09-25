@@ -12,9 +12,9 @@ export default async function RelatoriosPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
   const { wedding } = ctx;
-  const parcelas = computeParcelasComputed(wedding.id).filter((p) => p.status !== "cancelado");
-  const fornecedores = listFornecedores(wedding.id);
-  const categoriaOrcamentos = listCategoriaOrcamentos(wedding.id);
+  const parcelas = (await computeParcelasComputed(wedding.id)).filter((p) => p.status !== "cancelado");
+  const fornecedores = await listFornecedores(wedding.id);
+  const categoriaOrcamentos = await listCategoriaOrcamentos(wedding.id);
 
   // Gastos por categoria
   const porCategoria = new Map<string, number>();

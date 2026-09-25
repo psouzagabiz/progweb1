@@ -13,10 +13,10 @@ export default async function FornecedorDetailPage({ params }: { params: Promise
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
   const { id } = await params;
-  const fornecedor = getFornecedor(ctx.wedding.id, id);
+  const fornecedor = await getFornecedor(ctx.wedding.id, id);
   if (!fornecedor) notFound();
 
-  const parcelas = computeParcelasComputed(ctx.wedding.id).filter((p) => p.fornecedor_id === id);
+  const parcelas = (await computeParcelasComputed(ctx.wedding.id)).filter((p) => p.fornecedor_id === id);
   const despesasIds = Array.from(new Set(parcelas.map((p) => p.despesa_id)));
   const contratado = parcelas.filter((p) => p.status !== "cancelado").reduce((s, p) => s + p.valorCents, 0);
   const pago = parcelas.reduce((s, p) => s + p.pagoCents, 0);

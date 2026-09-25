@@ -8,14 +8,17 @@ import ConfiguracoesClient from "@/components/configuracoes/ConfiguracoesClient"
 export default async function ConfiguracoesPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
-  const db = getDb();
-  const demoDespesas = db
-    .prepare("SELECT COUNT(*) as c FROM despesas WHERE wedding_id = ? AND is_demo = 1")
-    .get(ctx.wedding.id) as { c: number };
-  const demoFornecedores = db
-    .prepare("SELECT COUNT(*) as c FROM fornecedores WHERE wedding_id = ? AND is_demo = 1")
-    .get(ctx.wedding.id) as { c: number };
-  const hasDemoData = demoDespesas.c > 0 || demoFornecedores.c > 0;
+  const db = await getDb();
+  const demoDespesasRes = await db.query(
+    "SELECT COUNT(*) as c FROM despesas WHERE wedding_id = $1 AND is_demo = 1",
+    [ctx.wedding.id]
+  );
+  const demoFornecedoresRes = await db.query(
+    "SELECT COUNT(*) as c FROM fornecedores WHERE wedding_id = $1 AND is_demo = 1",
+    [ctx.wedding.id]
+  );
+  const hasDemoData =
+    Number(demoDespesasRes.rows[0].c) > 0 || Number(demoFornecedoresRes.rows[0].c) > 0;
 
   return (
     <div className="flex flex-col gap-6">

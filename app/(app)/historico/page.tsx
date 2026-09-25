@@ -7,7 +7,7 @@ import { listHistorico } from "@/lib/db/repo";
 export default async function HistoricoPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
-  const historico = listHistorico(ctx.wedding.id, 200);
+  const historico = await listHistorico(ctx.wedding.id, 200);
 
   return (
     <div className="flex flex-col gap-6">

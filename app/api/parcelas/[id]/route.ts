@@ -6,9 +6,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
-  const p = getParcelaWithContext(ctx.wedding.id, id);
+  const p = await getParcelaWithContext(ctx.wedding.id, id);
   if (!p) return NextResponse.json({ error: "not found" }, { status: 404 });
-  const pagamentos = listPagamentosForParcela(id);
+  const pagamentos = await listPagamentosForParcela(id);
   return NextResponse.json({ ...p, pagamentos });
 }
 
@@ -17,7 +17,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
   const body = await req.json();
-  updateParcela(ctx.wedding.id, id, {
+  await updateParcela(ctx.wedding.id, id, {
     valor_cents: body.valor_cents !== undefined ? Number(body.valor_cents) : undefined,
     vencimento: body.vencimento,
     forma_pagamento: body.forma_pagamento,

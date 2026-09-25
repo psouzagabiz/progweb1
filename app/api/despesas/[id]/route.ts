@@ -31,9 +31,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
-  const d = getDespesa(ctx.wedding.id, id);
+  const d = await getDespesa(ctx.wedding.id, id);
   if (!d) return NextResponse.json({ error: "not found" }, { status: 404 });
-  return NextResponse.json({ ...d, impact: despesaDeletionImpact(id) });
+  return NextResponse.json({ ...d, impact: await despesaDeletionImpact(id) });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -42,7 +42,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const body = await req.json();
   const regenerar = body.regenerar_parcelas !== false;
-  updateDespesa(ctx.wedding.id, id, parseInput(body), regenerar);
+  await updateDespesa(ctx.wedding.id, id, parseInput(body), regenerar);
   return NextResponse.json({ ok: true });
 }
 
@@ -50,6 +50,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
-  deleteDespesa(ctx.wedding.id, id);
+  await deleteDespesa(ctx.wedding.id, id);
   return NextResponse.json({ ok: true });
 }

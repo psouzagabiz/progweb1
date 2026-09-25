@@ -27,10 +27,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials?.password as string | undefined;
         if (!email || !password) return null;
 
-        const db = getDb();
-        const user = db
-          .prepare("SELECT * FROM users WHERE email = ?")
-          .get(email.toLowerCase().trim()) as UserRow | undefined;
+        const db = await getDb();
+        const res = await db.query("SELECT * FROM users WHERE email = $1", [
+          email.toLowerCase().trim(),
+        ]);
+        const user = res.rows[0] as UserRow | undefined;
         if (!user) return null;
 
         const valid = bcrypt.compareSync(password, user.password_hash);

@@ -6,6 +6,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
-  deletePagamento(ctx.wedding.id, id);
+  await deletePagamento(ctx.wedding.id, id);
   return NextResponse.json({ ok: true });
 }

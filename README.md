@@ -5,7 +5,7 @@ Aplicação web para gerenciar o orçamento, despesas, parcelas, fornecedores e 
 ## Stack
 
 - **Next.js 16 (App Router)** + **TypeScript** + **Tailwind CSS**
-- **SQLite** via `better-sqlite3` (banco de dados em arquivo local, sem dependências externas)
+- **PostgreSQL** via `pg` (node-postgres), com pool de conexões reutilizado entre invocações — tabelas migradas automaticamente (`CREATE TABLE IF NOT EXISTS`) na primeira conexão, sem passo manual
 - **NextAuth.js** (Credentials Provider) com **bcrypt** para autenticação multiusuário — cada usuário só enxerga seu(s) próprio(s) casamento(s)
 - **Recharts** para gráficos
 - **date-fns** com locale pt-BR para datas
@@ -13,7 +13,13 @@ Aplicação web para gerenciar o orçamento, despesas, parcelas, fornecedores e 
 
 ## Como rodar
 
+É necessário um banco **PostgreSQL** — não usamos mais SQLite. Defina a variável de ambiente `POSTGRES_URL` apontando para qualquer instância Postgres, por exemplo:
+
+- um container local: `docker run -d -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16-alpine` → `POSTGRES_URL=postgres://postgres:postgres@localhost:5432/postgres`
+- um projeto gratuito no [Supabase](https://supabase.com) ou no [Neon](https://neon.tech) (ambos fornecem uma connection string pronta)
+
 ```bash
+export POSTGRES_URL="postgres://postgres:postgres@localhost:5432/postgres"
 npm install
 npm run seed   # cria usuário e casamento de demonstração (idempotente)
 npm run dev    # http://localhost:3000
@@ -31,7 +37,7 @@ npm run build
 npm run start
 ```
 
-O banco SQLite é criado automaticamente em `data/app.db` na primeira execução (com as tabelas migradas). Arquivos de comprovante enviados ficam em `uploads/`. Nenhum dos dois é versionado no git.
+As tabelas são criadas automaticamente (`CREATE TABLE IF NOT EXISTS`) na primeira conexão ao banco — não há passo de migração manual. Em produção na Vercel, conecte um banco Postgres (ex.: Supabase) pela aba **Storage** do projeto: isso injeta `POSTGRES_URL` (ou variáveis equivalentes) automaticamente. Arquivos de comprovante enviados ainda ficam em disco local (`uploads/`, ou `/tmp/wedding-finance/uploads` na Vercel) — isso é efêmero em serverless e é um problema separado, fora do escopo desta migração.
 
 ## Testes
 
@@ -45,7 +51,7 @@ npm run test
 
 - `app/` — rotas (App Router). `app/(app)/` agrupa todas as páginas autenticadas sob o layout com sidebar/bottom-nav; `app/api/` contém as rotas de API (CRUD, exportações, backup).
 - `components/` — componentes de UI reutilizáveis, organizados por funcionalidade.
-- `lib/db/` — camada de acesso ao SQLite: `index.ts` cria/migra o schema, `repo.ts` contém todas as funções de leitura/escrita usadas pelas rotas e páginas (sempre filtradas por `wedding_id` do usuário autenticado).
+- `lib/db/` — camada de acesso ao PostgreSQL: `index.ts` cria o pool de conexões e migra o schema, `repo.ts` contém todas as funções de leitura/escrita (assíncronas) usadas pelas rotas e páginas (sempre filtradas por `wedding_id` do usuário autenticado).
 - `lib/finance/` — funções puras (sem I/O, testáveis) de cálculo financeiro: geração de parcelas com arredondamento exato (`installments.ts`), cálculo automático de status (`status.ts`), agregações de totais (`totals.ts`), formatação monetária (`money.ts`) e constantes de domínio (`constants.ts`).
 - `lib/auth/` — configuração do NextAuth e helper `requireUserAndWedding()` usado em toda página/rota protegida.
 - `lib/reports/` — geração de CSV.

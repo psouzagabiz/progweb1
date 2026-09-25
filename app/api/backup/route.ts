@@ -6,32 +6,36 @@ import { randomUUID } from "crypto";
 export async function GET() {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getDb();
+  const db = await getDb();
   const weddingId = ctx.wedding.id;
 
-  const wedding = db.prepare("SELECT * FROM weddings WHERE id = ?").get(weddingId);
-  const fornecedores = db.prepare("SELECT * FROM fornecedores WHERE wedding_id = ?").all(weddingId);
-  const despesas = db.prepare("SELECT * FROM despesas WHERE wedding_id = ?").all(weddingId);
+  const wedding = (await db.query("SELECT * FROM weddings WHERE id = $1", [weddingId])).rows[0];
+  const fornecedores = (await db.query("SELECT * FROM fornecedores WHERE wedding_id = $1", [weddingId])).rows;
+  const despesas = (await db.query("SELECT * FROM despesas WHERE wedding_id = $1", [weddingId])).rows;
   const despesaIds = (despesas as { id: string }[]).map((d) => d.id);
   const parcelas =
     despesaIds.length > 0
-      ? db
-          .prepare(
-            `SELECT * FROM parcelas WHERE despesa_id IN (${despesaIds.map(() => "?").join(",")})`
+      ? (
+          await db.query(
+            `SELECT * FROM parcelas WHERE despesa_id = ANY($1::text[])`,
+            [despesaIds]
           )
-          .all(...despesaIds)
+        ).rows
       : [];
   const parcelaIds = (parcelas as { id: string }[]).map((p) => p.id);
   const pagamentos =
     parcelaIds.length > 0
-      ? db
-          .prepare(`SELECT * FROM pagamentos WHERE parcela_id IN (${parcelaIds.map(() => "?").join(",")})`)
-          .all(...parcelaIds)
+      ? (
+          await db.query(
+            `SELECT * FROM pagamentos WHERE parcela_id = ANY($1::text[])`,
+            [parcelaIds]
+          )
+        ).rows
       : [];
-  const checklist = db.prepare("SELECT * FROM checklist WHERE wedding_id = ?").all(weddingId);
-  const categoriaOrcamentos = db
-    .prepare("SELECT * FROM categoria_orcamentos WHERE wedding_id = ?")
-    .all(weddingId);
+  const checklist = (await db.query("SELECT * FROM checklist WHERE wedding_id = $1", [weddingId])).rows;
+  const categoriaOrcamentos = (
+    await db.query("SELECT * FROM categoria_orcamentos WHERE wedding_id = $1", [weddingId])
+  ).rows;
 
   const backup = {
     version: 1,
@@ -65,7 +69,7 @@ interface BackupShape {
 export async function POST(req: NextRequest) {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const db = getDb();
+  const pool = await getDb();
   const weddingId = ctx.wedding.id;
   const data = (await req.json()) as BackupShape;
 
@@ -73,41 +77,46 @@ export async function POST(req: NextRequest) {
   const idMapDespesa = new Map<string, string>();
   const idMapParcela = new Map<string, string>();
 
-  const tx = db.transaction(() => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
     for (const f of data.fornecedores ?? []) {
       const newId = randomUUID();
       idMapFornecedor.set(f.id as string, newId);
-      db.prepare(
+      await client.query(
         `INSERT INTO fornecedores (id, wedding_id, nome, categoria, telefone, whatsapp, email, instagram, observacoes)
-         VALUES (?,?,?,?,?,?,?,?,?)`
-      ).run(newId, weddingId, f.nome, f.categoria, f.telefone, f.whatsapp, f.email, f.instagram, f.observacoes);
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [newId, weddingId, f.nome, f.categoria, f.telefone, f.whatsapp, f.email, f.instagram, f.observacoes]
+      );
     }
     for (const d of data.despesas ?? []) {
       const newId = randomUUID();
       idMapDespesa.set(d.id as string, newId);
       const fornecedorId = d.fornecedor_id ? idMapFornecedor.get(d.fornecedor_id as string) ?? null : null;
-      db.prepare(
+      await client.query(
         `INSERT INTO despesas (id, wedding_id, fornecedor_id, nome, categoria, descricao, data_contratacao,
           valor_total_cents, tipo_pagamento, num_parcelas, valor_entrada_cents, periodicidade, intervalo_dias,
           cartao, data_primeira_fatura, observacoes)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
-      ).run(
-        newId,
-        weddingId,
-        fornecedorId,
-        d.nome,
-        d.categoria,
-        d.descricao,
-        d.data_contratacao,
-        d.valor_total_cents,
-        d.tipo_pagamento,
-        d.num_parcelas,
-        d.valor_entrada_cents,
-        d.periodicidade,
-        d.intervalo_dias,
-        d.cartao,
-        d.data_primeira_fatura,
-        d.observacoes
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+        [
+          newId,
+          weddingId,
+          fornecedorId,
+          d.nome,
+          d.categoria,
+          d.descricao,
+          d.data_contratacao,
+          d.valor_total_cents,
+          d.tipo_pagamento,
+          d.num_parcelas,
+          d.valor_entrada_cents,
+          d.periodicidade,
+          d.intervalo_dias,
+          d.cartao,
+          d.data_primeira_fatura,
+          d.observacoes,
+        ]
       );
     }
     for (const p of data.parcelas ?? []) {
@@ -115,33 +124,45 @@ export async function POST(req: NextRequest) {
       idMapParcela.set(p.id as string, newId);
       const despesaId = idMapDespesa.get(p.despesa_id as string);
       if (!despesaId) continue;
-      db.prepare(
+      await client.query(
         `INSERT INTO parcelas (id, despesa_id, numero, label, valor_cents, vencimento, forma_pagamento, observacao, cancelada)
-         VALUES (?,?,?,?,?,?,?,?,?)`
-      ).run(newId, despesaId, p.numero, p.label, p.valor_cents, p.vencimento, p.forma_pagamento, p.observacao, p.cancelada);
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [newId, despesaId, p.numero, p.label, p.valor_cents, p.vencimento, p.forma_pagamento, p.observacao, p.cancelada]
+      );
     }
     for (const pg of data.pagamentos ?? []) {
       const parcelaId = idMapParcela.get(pg.parcela_id as string);
       if (!parcelaId) continue;
-      db.prepare(
+      await client.query(
         `INSERT INTO pagamentos (id, parcela_id, valor_pago_cents, data_pagamento, forma_pagamento, conta_cartao, observacao, comprovante_path)
-         VALUES (?,?,?,?,?,?,?,?)`
-      ).run(randomUUID(), parcelaId, pg.valor_pago_cents, pg.data_pagamento, pg.forma_pagamento, pg.conta_cartao, pg.observacao, null);
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [randomUUID(), parcelaId, pg.valor_pago_cents, pg.data_pagamento, pg.forma_pagamento, pg.conta_cartao, pg.observacao, null]
+      );
     }
     for (const c of data.checklist ?? []) {
-      db.prepare(
-        `INSERT INTO checklist (id, wedding_id, nome, prazo, responsavel, status, observacao) VALUES (?,?,?,?,?,?,?)`
-      ).run(randomUUID(), weddingId, c.nome, c.prazo, c.responsavel, c.status, c.observacao);
+      await client.query(
+        `INSERT INTO checklist (id, wedding_id, nome, prazo, responsavel, status, observacao) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [randomUUID(), weddingId, c.nome, c.prazo, c.responsavel, c.status, c.observacao]
+      );
     }
     for (const co of data.categoriaOrcamentos ?? []) {
-      db.prepare(
-        `INSERT OR REPLACE INTO categoria_orcamentos (id, wedding_id, categoria, orcamento_cents) VALUES (?,?,?,?)`
-      ).run(randomUUID(), weddingId, co.categoria, co.orcamento_cents);
+      await client.query(
+        `INSERT INTO categoria_orcamentos (id, wedding_id, categoria, orcamento_cents)
+         VALUES ($1,$2,$3,$4)
+         ON CONFLICT (wedding_id, categoria) DO UPDATE SET orcamento_cents = EXCLUDED.orcamento_cents`,
+        [randomUUID(), weddingId, co.categoria, co.orcamento_cents]
+      );
     }
-  });
 
-  tx();
-  logHistorico(weddingId, "created", "orcamento", weddingId, "Backup restaurado a partir de arquivo JSON");
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  await logHistorico(weddingId, "created", "orcamento", weddingId, "Backup restaurado a partir de arquivo JSON");
 
   return NextResponse.json({ ok: true });
 }

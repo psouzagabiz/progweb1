@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { registrarPagamento } from "@/lib/db/repo";
 import { uploadsDir } from "@/lib/db";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireUserAndWedding();
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     observacao = body.observacao || "";
   }
 
-  const pagamentoId = registrarPagamento(ctx.wedding.id, id, {
+  const pagamentoId = await registrarPagamento(ctx.wedding.id, id, {
     valor_pago_cents,
     data_pagamento,
     forma_pagamento,

@@ -8,15 +8,15 @@ export async function GET(req: NextRequest) {
   const q = (req.nextUrl.searchParams.get("q") || "").toLowerCase().trim();
   if (!q) return NextResponse.json({ fornecedores: [], despesas: [], parcelas: [] });
 
-  const fornecedores = listFornecedores(ctx.wedding.id)
+  const fornecedores = (await listFornecedores(ctx.wedding.id))
     .filter((f) => f.nome.toLowerCase().includes(q) || f.categoria.toLowerCase().includes(q))
     .map((f) => ({ id: f.id, nome: f.nome, categoria: f.categoria }));
 
-  const despesas = listDespesas(ctx.wedding.id)
+  const despesas = (await listDespesas(ctx.wedding.id))
     .filter((d) => d.nome.toLowerCase().includes(q) || d.categoria.toLowerCase().includes(q))
     .map((d) => ({ id: d.id, nome: d.nome, categoria: d.categoria }));
 
-  const parcelas = listParcelasForWedding(ctx.wedding.id)
+  const parcelas = (await listParcelasForWedding(ctx.wedding.id))
     .filter((p) => p.despesa_nome.toLowerCase().includes(q) || String(p.numero).includes(q) || p.despesa_categoria.toLowerCase().includes(q))
     .slice(0, 30)
     .map((p) => ({ id: p.id, despesa_nome: p.despesa_nome, numero: p.numero, vencimento: p.vencimento }));

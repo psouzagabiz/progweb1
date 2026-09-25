@@ -8,9 +8,9 @@ import PagamentosClient from "@/components/pagamentos/PagamentosClient";
 export default async function PagamentosPage() {
   const ctx = await requireUserAndWedding();
   if (!ctx) redirect("/login");
-  const parcelas = listParcelasForWedding(ctx.wedding.id);
+  const parcelas = await listParcelasForWedding(ctx.wedding.id);
   const byId = new Map(parcelas.map((p) => [p.id, p]));
-  const pagamentos = listPagamentosForWedding(ctx.wedding.id).map((p) => ({
+  const pagamentos = (await listPagamentosForWedding(ctx.wedding.id)).map((p) => ({
     id: p.id,
     despesa_nome: byId.get(p.parcela_id)?.despesa_nome ?? "-",
     data_pagamento: p.data_pagamento,

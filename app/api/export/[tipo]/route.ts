@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tip
   let filename = "export.csv";
 
   if (tipo === "parcelas") {
-    const parcelas = computeParcelasComputed(weddingId);
+    const parcelas = await computeParcelasComputed(weddingId);
     csv = toCsv(
       parcelas.map((p) => ({
         despesa: p.despesa_nome,
@@ -46,8 +46,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tip
     );
     filename = "parcelas.csv";
   } else if (tipo === "pagamentos") {
-    const pagamentos = listPagamentosForWedding(weddingId);
-    const parcelasCtx = listParcelasForWedding(weddingId);
+    const pagamentos = await listPagamentosForWedding(weddingId);
+    const parcelasCtx = await listParcelasForWedding(weddingId);
     const byId = new Map(parcelasCtx.map((p) => [p.id, p]));
     csv = toCsv(
       pagamentos.map((pg) => {
@@ -72,7 +72,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tip
     );
     filename = "pagamentos.csv";
   } else if (tipo === "fornecedores") {
-    const fornecedores = listFornecedores(weddingId);
+    const fornecedores = await listFornecedores(weddingId);
     csv = toCsv(
       fornecedores.map((f) => ({
         nome: f.nome,

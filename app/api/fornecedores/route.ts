@@ -5,14 +5,14 @@ import { createFornecedor, listFornecedores } from "@/lib/db/repo";
 export async function GET() {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  return NextResponse.json(listFornecedores(ctx.wedding.id));
+  return NextResponse.json(await listFornecedores(ctx.wedding.id));
 }
 
 export async function POST(req: NextRequest) {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = await req.json();
-  const id = createFornecedor(ctx.wedding.id, {
+  const id = await createFornecedor(ctx.wedding.id, {
     nome: body.nome ?? "",
     categoria: body.categoria ?? "",
     telefone: body.telefone ?? "",

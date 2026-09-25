@@ -7,7 +7,7 @@ export async function GET() {
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   return NextResponse.json({
     wedding: ctx.wedding,
-    categorias: listCategoriaOrcamentos(ctx.wedding.id),
+    categorias: await listCategoriaOrcamentos(ctx.wedding.id),
   });
 }
 
@@ -15,7 +15,7 @@ export async function PUT(req: NextRequest) {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = await req.json();
-  updateWedding(ctx.wedding.id, {
+  await updateWedding(ctx.wedding.id, {
     noivo1: body.noivo1 ?? "",
     noivo2: body.noivo2 ?? "",
     data_casamento: body.data_casamento || null,
@@ -24,7 +24,7 @@ export async function PUT(req: NextRequest) {
   });
   if (Array.isArray(body.categorias)) {
     for (const c of body.categorias) {
-      setCategoriaOrcamento(ctx.wedding.id, c.categoria, Number(c.orcamento_cents) || 0);
+      await setCategoriaOrcamento(ctx.wedding.id, c.categoria, Number(c.orcamento_cents) || 0);
     }
   }
   return NextResponse.json({ ok: true });

@@ -1,12 +1,13 @@
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
-import type Database from "better-sqlite3";
+import type { Pool } from "pg";
 import { generateInstallments } from "../lib/finance/installments";
 
-export function seedDemoData(db: Database.Database) {
-  const existingUser = db.prepare("SELECT id FROM users WHERE email = ?").get("joao.maria@exemplo.com") as
-    | { id: string }
-    | undefined;
+export async function seedDemoData(db: Pool) {
+  const existingUserRes = await db.query("SELECT id FROM users WHERE email = $1", [
+    "joao.maria@exemplo.com",
+  ]);
+  const existingUser = existingUserRes.rows[0] as { id: string } | undefined;
 
   if (existingUser) {
     console.log("Dados de demonstração já existem. Nada a fazer.");
@@ -16,29 +17,41 @@ export function seedDemoData(db: Database.Database) {
 
   const userId = randomUUID();
   const passwordHash = bcrypt.hashSync("casamento123", 10);
-  db.prepare("INSERT INTO users (id, name, email, password_hash) VALUES (?,?,?,?)").run(
+  await db.query("INSERT INTO users (id, name, email, password_hash) VALUES ($1,$2,$3,$4)", [
     userId,
     "João e Maria",
     "joao.maria@exemplo.com",
-    passwordHash
-  );
+    passwordHash,
+  ]);
 
   const weddingId = randomUUID();
-  db.prepare(
+  await db.query(
     `INSERT INTO weddings (id, user_id, noivo1, noivo2, data_casamento, orcamento_maximo_cents, observacoes, is_demo)
-     VALUES (?,?,?,?,?,?,?,1)`
-  ).run(weddingId, userId, "João", "Maria", "2027-05-15", 8_000_000, "Casamento de demonstração para testar o sistema.");
+     VALUES ($1,$2,$3,$4,$5,$6,$7,1)`,
+    [weddingId, userId, "João", "Maria", "2027-05-15", 8_000_000, "Casamento de demonstração para testar o sistema."]
+  );
 
-  function addFornecedor(nome: string, categoria: string) {
+  async function addFornecedor(nome: string, categoria: string) {
     const id = randomUUID();
-    db.prepare(
+    await db.query(
       `INSERT INTO fornecedores (id, wedding_id, nome, categoria, telefone, whatsapp, email, instagram, observacoes, is_demo)
-       VALUES (?,?,?,?,?,?,?,?,?,1)`
-    ).run(id, weddingId, nome, categoria, "(11) 99999-0000", "(11) 99999-0000", "contato@exemplo.com", "@" + nome.toLowerCase().replace(/\s+/g, ""), "");
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,1)`,
+      [
+        id,
+        weddingId,
+        nome,
+        categoria,
+        "(11) 99999-0000",
+        "(11) 99999-0000",
+        "contato@exemplo.com",
+        "@" + nome.toLowerCase().replace(/\s+/g, ""),
+        "",
+      ]
+    );
     return id;
   }
 
-  function addDespesaComParcelas(params: {
+  async function addDespesaComParcelas(params: {
     nome: string;
     categoria: string;
     fornecedorId: string;
@@ -49,28 +62,29 @@ export function seedDemoData(db: Database.Database) {
   }) {
     const despesaId = randomUUID();
     const tipoPagamento = params.valorEntradaCents > 0 ? "entrada_parcelas" : "parcelado";
-    db.prepare(
+    await db.query(
       `INSERT INTO despesas (id, wedding_id, fornecedor_id, nome, categoria, descricao, data_contratacao,
         valor_total_cents, tipo_pagamento, num_parcelas, valor_entrada_cents, periodicidade, intervalo_dias,
         cartao, data_primeira_fatura, observacoes, is_demo)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`
-    ).run(
-      despesaId,
-      weddingId,
-      params.fornecedorId,
-      params.nome,
-      params.categoria,
-      "Despesa de demonstração",
-      params.dataContratacao,
-      params.valorTotalCents,
-      tipoPagamento,
-      params.numParcelas,
-      params.valorEntradaCents,
-      "mensal",
-      30,
-      "",
-      null,
-      ""
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,1)`,
+      [
+        despesaId,
+        weddingId,
+        params.fornecedorId,
+        params.nome,
+        params.categoria,
+        "Despesa de demonstração",
+        params.dataContratacao,
+        params.valorTotalCents,
+        tipoPagamento,
+        params.numParcelas,
+        params.valorEntradaCents,
+        "mensal",
+        30,
+        "",
+        null,
+        "",
+      ]
     );
 
     const parcelas = generateInstallments({
@@ -82,17 +96,17 @@ export function seedDemoData(db: Database.Database) {
       intervaloDias: 30,
     });
 
-    const insert = db.prepare(
-      `INSERT INTO parcelas (id, despesa_id, numero, label, valor_cents, vencimento) VALUES (?,?,?,?,?,?)`
-    );
     for (const p of parcelas) {
-      insert.run(randomUUID(), despesaId, p.numero, p.label, p.valorCents, p.vencimento);
+      await db.query(
+        `INSERT INTO parcelas (id, despesa_id, numero, label, valor_cents, vencimento) VALUES ($1,$2,$3,$4,$5,$6)`,
+        [randomUUID(), despesaId, p.numero, p.label, p.valorCents, p.vencimento]
+      );
     }
     return despesaId;
   }
 
-  const buffet = addFornecedor("Buffet Sabor & Festa", "Buffet");
-  addDespesaComParcelas({
+  const buffet = await addFornecedor("Buffet Sabor & Festa", "Buffet");
+  await addDespesaComParcelas({
     nome: "Buffet Sabor & Festa",
     categoria: "Buffet",
     fornecedorId: buffet,
@@ -102,8 +116,8 @@ export function seedDemoData(db: Database.Database) {
     numParcelas: 10,
   });
 
-  const foto = addFornecedor("Estúdio Lumen Fotografia", "Fotografia");
-  addDespesaComParcelas({
+  const foto = await addFornecedor("Estúdio Lumen Fotografia", "Fotografia");
+  await addDespesaComParcelas({
     nome: "Fotografia",
     categoria: "Fotografia",
     fornecedorId: foto,
@@ -113,8 +127,8 @@ export function seedDemoData(db: Database.Database) {
     numParcelas: 6,
   });
 
-  const decor = addFornecedor("Flor & Cia Decorações", "Decoração");
-  addDespesaComParcelas({
+  const decor = await addFornecedor("Flor & Cia Decorações", "Decoração");
+  await addDespesaComParcelas({
     nome: "Decoração",
     categoria: "Decoração",
     fornecedorId: decor,
@@ -125,16 +139,25 @@ export function seedDemoData(db: Database.Database) {
   });
 
   // Register a couple of demo payments so statuses aren't all "pendente"
-  const primeiraParcelaBuffet = db
-    .prepare(
-      `SELECT p.id, p.valor_cents FROM parcelas p JOIN despesas d ON d.id = p.despesa_id
-       WHERE d.wedding_id = ? AND d.nome = 'Buffet Sabor & Festa' ORDER BY p.numero ASC LIMIT 1`
-    )
-    .get(weddingId) as { id: string; valor_cents: number };
-  db.prepare(
+  const primeiraParcelaBuffetRes = await db.query(
+    `SELECT p.id, p.valor_cents FROM parcelas p JOIN despesas d ON d.id = p.despesa_id
+     WHERE d.wedding_id = $1 AND d.nome = 'Buffet Sabor & Festa' ORDER BY p.numero ASC LIMIT 1`,
+    [weddingId]
+  );
+  const primeiraParcelaBuffet = primeiraParcelaBuffetRes.rows[0] as { id: string; valor_cents: number };
+  await db.query(
     `INSERT INTO pagamentos (id, parcela_id, valor_pago_cents, data_pagamento, forma_pagamento, conta_cartao, observacao)
-     VALUES (?,?,?,?,?,?,?)`
-  ).run(randomUUID(), primeiraParcelaBuffet.id, primeiraParcelaBuffet.valor_cents, "2026-08-01", "PIX", "Conta corrente", "Pagamento da entrada");
+     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    [
+      randomUUID(),
+      primeiraParcelaBuffet.id,
+      primeiraParcelaBuffet.valor_cents,
+      "2026-08-01",
+      "PIX",
+      "Conta corrente",
+      "Pagamento da entrada",
+    ]
+  );
 
   // Checklist demo items
   const checklistItems = [
@@ -143,14 +166,16 @@ export function seedDemoData(db: Database.Database) {
     { nome: "Revisar orçamento geral", prazo: "2027-01-15", responsavel: "João e Maria", status: "pendente" },
   ];
   for (const c of checklistItems) {
-    db.prepare(
-      `INSERT INTO checklist (id, wedding_id, nome, prazo, responsavel, status, observacao, is_demo) VALUES (?,?,?,?,?,?,?,1)`
-    ).run(randomUUID(), weddingId, c.nome, c.prazo, c.responsavel, c.status, "");
+    await db.query(
+      `INSERT INTO checklist (id, wedding_id, nome, prazo, responsavel, status, observacao, is_demo) VALUES ($1,$2,$3,$4,$5,$6,$7,1)`,
+      [randomUUID(), weddingId, c.nome, c.prazo, c.responsavel, c.status, ""]
+    );
   }
 
-  db.prepare(
-    `INSERT INTO historico (id, wedding_id, tipo, entidade, entidade_id, descricao) VALUES (?,?,?,?,?,?)`
-  ).run(randomUUID(), weddingId, "created", "orcamento", weddingId, "Dados de demonstração criados durante o seed inicial");
+  await db.query(
+    `INSERT INTO historico (id, wedding_id, tipo, entidade, entidade_id, descricao) VALUES ($1,$2,$3,$4,$5,$6)`,
+    [randomUUID(), weddingId, "created", "orcamento", weddingId, "Dados de demonstração criados durante o seed inicial"]
+  );
 
   console.log("Seed concluído!");
   console.log("Login de demonstração: joao.maria@exemplo.com / senha: casamento123");
@@ -159,5 +184,11 @@ export function seedDemoData(db: Database.Database) {
 if (require.main === module) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { getDb } = require("../lib/db");
-  seedDemoData(getDb());
+  getDb()
+    .then((db: Pool) => seedDemoData(db))
+    .then(() => process.exit(0))
+    .catch((err: unknown) => {
+      console.error(err);
+      process.exit(1);
+    });
 }
