@@ -90,12 +90,16 @@ export default function DespesaFormModal({
     };
     const url = values.id ? `/api/despesas/${values.id}` : "/api/despesas";
     const method = values.id ? "PUT" : "POST";
-    await fetch(url, {
+    const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
     setSaving(false);
+    if (!res.ok) {
+      alert(`Erro ao salvar despesa: ${await res.text()}`);
+      return;
+    }
     onSaved();
     onClose();
   }

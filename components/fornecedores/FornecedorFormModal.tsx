@@ -50,8 +50,12 @@ export default function FornecedorFormModal({
     setSaving(true);
     const url = values.id ? `/api/fornecedores/${values.id}` : "/api/fornecedores";
     const method = values.id ? "PUT" : "POST";
-    await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
     setSaving(false);
+    if (!res.ok) {
+      alert(`Erro ao salvar fornecedor: ${await res.text()}`);
+      return;
+    }
     onSaved();
     onClose();
   }

@@ -30,7 +30,12 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const body = await req.json();
-  const id = await createDespesa(ctx.wedding.id, parseInput(body));
-  return NextResponse.json({ id });
+  try {
+    const body = await req.json();
+    const id = await createDespesa(ctx.wedding.id, parseInput(body));
+    return NextResponse.json({ id });
+  } catch (err) {
+    console.error("POST /api/despesas failed", err);
+    return NextResponse.json({ error: String(err instanceof Error ? err.message : err) }, { status: 500 });
+  }
 }
