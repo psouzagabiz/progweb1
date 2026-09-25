@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { useState } from "react";
 import {
   LayoutDashboard,
@@ -17,7 +16,6 @@ import {
   Menu,
   X,
   Plus,
-  LogOut,
   Heart,
   CreditCard,
   Search,
@@ -91,13 +89,7 @@ export default function AppShell({
           })}
         </nav>
         <div className="p-3 border-t border-border">
-          <p className="px-3 text-xs text-muted mb-2 truncate">{userName}</p>
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-foreground/80 hover:bg-champagne/15"
-          >
-            <LogOut className="w-4 h-4" /> Sair
-          </button>
+          <p className="px-3 text-xs text-muted truncate">{userName}</p>
         </div>
       </aside>
 
@@ -138,12 +130,6 @@ export default function AppShell({
                   {item.label}
                 </Link>
               ))}
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-danger mt-2"
-              >
-                <LogOut className="w-5 h-5" /> Sair
-              </button>
             </nav>
           </div>
         </div>

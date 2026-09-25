@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { computeParcelasComputed, listHistorico } from "@/lib/db/repo";

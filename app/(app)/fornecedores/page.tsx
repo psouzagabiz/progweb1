@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { listFornecedores, computeParcelasComputed } from "@/lib/db/repo";
