@@ -15,7 +15,7 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 // Vercel/Supabase integrations can inject slightly different env var names
 // depending on how the storage integration is set up, so read defensively.
-const connectionString =
+const rawConnectionString =
   process.env.POSTGRES_URL ||
   process.env.POSTGRES_PRISMA_URL ||
   process.env.POSTGRES_URL_NON_POOLING ||
@@ -29,19 +29,21 @@ declare global {
 }
 
 function createPool(): Pool {
-  if (!connectionString) {
+  if (!rawConnectionString) {
     throw new Error(
       "No Postgres connection string found. Set POSTGRES_URL (or POSTGRES_PRISMA_URL / POSTGRES_URL_NON_POOLING / DATABASE_URL)."
     );
   }
-  // Supabase (and most managed Postgres providers) require SSL. Allow
-  // connection strings that already specify sslmode to pass through as-is,
-  // and otherwise default to SSL with relaxed certificate checking, which is
-  // the standard approach for serverless environments without a bundled CA.
-  const needsSsl = !/sslmode=disable/.test(connectionString);
+  const noSsl = /sslmode=disable/.test(rawConnectionString);
+  // Strip any sslmode param from the URL itself: pg-connection-string parses
+  // it into its own ssl config (e.g. sslmode=require -> ssl:true with cert
+  // verification ON), which can override/conflict with the explicit `ssl`
+  // option below. Supabase's pooler uses a cert Node doesn't trust by
+  // default, so we always want relaxed verification explicitly instead.
+  const connectionString = rawConnectionString.replace(/([?&])sslmode=[^&]*&?/, "$1").replace(/[?&]$/, "");
   return new Pool({
     connectionString,
-    ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+    ssl: noSsl ? undefined : { rejectUnauthorized: false },
   });
 }
 
