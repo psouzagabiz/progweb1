@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseBRLToCents, formatBRL } from "@/lib/finance/money";
 import { CATEGORIAS_DESPESA } from "@/lib/finance/constants";
+import { fetchOrToast } from "@/lib/utils/apiFetch";
 
 interface Props {
   wedding: {
@@ -41,22 +42,27 @@ export default function OrcamentoForm({ wedding, categorias, percentComprometido
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await fetch("/api/orcamento", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        noivo1,
-        noivo2,
-        data_casamento: dataCasamento || null,
-        orcamento_maximo_cents: parseBRLToCents(orcamento),
-        observacoes,
-        categorias: Object.entries(catValues).map(([categoria, v]) => ({
-          categoria,
-          orcamento_cents: parseBRLToCents(v),
-        })),
-      }),
-    });
+    const res = await fetchOrToast(
+      "/api/orcamento",
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          noivo1,
+          noivo2,
+          data_casamento: dataCasamento || null,
+          orcamento_maximo_cents: parseBRLToCents(orcamento),
+          observacoes,
+          categorias: Object.entries(catValues).map(([categoria, v]) => ({
+            categoria,
+            orcamento_cents: parseBRLToCents(v),
+          })),
+        }),
+      },
+      "Erro ao salvar orçamento"
+    );
     setSaving(false);
+    if (!res) return;
     setSavedAt(Date.now());
     router.refresh();
   }

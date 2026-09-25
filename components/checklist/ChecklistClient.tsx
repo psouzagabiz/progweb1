@@ -8,6 +8,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { formatDateBR } from "@/lib/utils/dates";
 import { CHECKLIST_STATUS_LABELS } from "@/lib/finance/constants";
 import { cn } from "@/lib/utils/cn";
+import { fetchOrToast } from "@/lib/utils/apiFetch";
 
 export interface ChecklistItem {
   id: string;
@@ -50,26 +51,29 @@ export default function ChecklistClient({ items }: { items: ChecklistItem[] }) {
     setSaving(true);
     const url = editing ? `/api/checklist/${editing.id}` : "/api/checklist";
     const method = editing ? "PUT" : "POST";
-    await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
+    const res = await fetchOrToast(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) }, "Erro ao salvar tarefa");
     setSaving(false);
+    if (!res) return;
     setModalOpen(false);
     refresh();
   }
 
   async function toggleDone(item: ChecklistItem) {
     const newStatus = item.status === "concluido" ? "pendente" : "concluido";
-    await fetch(`/api/checklist/${item.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...item, status: newStatus }),
-    });
+    const res = await fetchOrToast(
+      `/api/checklist/${item.id}`,
+      { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...item, status: newStatus }) },
+      "Erro ao atualizar tarefa"
+    );
+    if (!res) return;
     refresh();
   }
 
   async function confirmDelete() {
     if (!deletingId) return;
-    await fetch(`/api/checklist/${deletingId}`, { method: "DELETE" });
+    const res = await fetchOrToast(`/api/checklist/${deletingId}`, { method: "DELETE" }, "Erro ao excluir tarefa");
     setDeletingId(null);
+    if (!res) return;
     refresh();
   }
 

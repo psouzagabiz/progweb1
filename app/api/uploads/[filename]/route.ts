@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-import fs from "fs";
 import { requireUserAndWedding } from "@/lib/auth/session";
-import { uploadsDir } from "@/lib/db";
+import { downloadComprovante } from "@/lib/storage/comprovantes";
+import { withApiError } from "@/lib/api/errors";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
+export const GET = withApiError("GET /api/uploads/[filename]", async (_req: NextRequest, { params }: { params: Promise<{ filename: string }> }) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { filename } = await params;
   const safe = path.basename(filename);
-  const filePath = path.join(uploadsDir, safe);
-  if (!fs.existsSync(filePath)) return NextResponse.json({ error: "not found" }, { status: 404 });
-  const buffer = fs.readFileSync(filePath);
-  return new NextResponse(buffer, {
+  const buffer = await downloadComprovante(safe);
+  if (!buffer) return NextResponse.json({ error: "not found" }, { status: 404 });
+  return new NextResponse(new Uint8Array(buffer), {
     headers: { "Content-Type": "application/octet-stream" },
   });
-}
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import Modal from "@/components/ui/Modal";
 import { CATEGORIAS_DESPESA } from "@/lib/finance/constants";
 
@@ -50,14 +51,20 @@ export default function FornecedorFormModal({
     setSaving(true);
     const url = values.id ? `/api/fornecedores/${values.id}` : "/api/fornecedores";
     const method = values.id ? "PUT" : "POST";
-    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
-    setSaving(false);
-    if (!res.ok) {
-      alert(`Erro ao salvar fornecedor: ${await res.text()}`);
-      return;
+    try {
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
+      if (!res.ok) {
+        toast.error(`Erro ao salvar fornecedor: ${await res.text()}`);
+        return;
+      }
+      toast.success(values.id ? "Fornecedor atualizado" : "Fornecedor criado");
+      onSaved();
+      onClose();
+    } catch (err) {
+      toast.error(`Erro ao salvar fornecedor: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSaving(false);
     }
-    onSaved();
-    onClose();
   }
 
   return (

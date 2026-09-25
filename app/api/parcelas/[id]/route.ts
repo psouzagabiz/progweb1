@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { getParcelaWithContext, listPagamentosForParcela, updateParcela } from "@/lib/db/repo";
+import { withApiError } from "@/lib/api/errors";
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const GET = withApiError("GET /api/parcelas/[id]", async (_req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -10,9 +11,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!p) return NextResponse.json({ error: "not found" }, { status: 404 });
   const pagamentos = await listPagamentosForParcela(id);
   return NextResponse.json({ ...p, pagamentos });
-}
+});
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const PUT = withApiError("PUT /api/parcelas/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -25,4 +26,4 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     cancelada: body.cancelada,
   });
   return NextResponse.json({ ok: true });
-}
+});

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { getDb, logHistorico } from "@/lib/db";
 import { randomUUID } from "crypto";
+import { withApiError } from "@/lib/api/errors";
 
-export async function GET() {
+export const GET = withApiError("GET /api/backup", async () => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const db = await getDb();
@@ -55,7 +56,7 @@ export async function GET() {
       "Content-Disposition": `attachment; filename="backup-casamento-${new Date().toISOString().slice(0, 10)}.json"`,
     },
   });
-}
+});
 
 interface BackupShape {
   fornecedores?: Record<string, unknown>[];
@@ -66,7 +67,7 @@ interface BackupShape {
   categoriaOrcamentos?: Record<string, unknown>[];
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withApiError("POST /api/backup", async (req: NextRequest) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const pool = await getDb();
@@ -165,4 +166,4 @@ export async function POST(req: NextRequest) {
   await logHistorico(weddingId, "created", "orcamento", weddingId, "Backup restaurado a partir de arquivo JSON");
 
   return NextResponse.json({ ok: true });
-}
+});

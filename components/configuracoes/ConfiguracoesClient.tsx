@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Upload, Trash2, FileDown } from "lucide-react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { fetchOrToast } from "@/lib/utils/apiFetch";
 
 export default function ConfiguracoesClient({ hasDemoData }: { hasDemoData: boolean }) {
   const router = useRouter();
@@ -38,7 +39,8 @@ export default function ConfiguracoesClient({ hasDemoData }: { hasDemoData: bool
   }
 
   async function handleRemoveDemo() {
-    await fetch("/api/demo/remove", { method: "POST" });
+    const res = await fetchOrToast("/api/demo/remove", { method: "POST" }, "Erro ao remover dados de demonstração");
+    if (!res) return;
     router.refresh();
   }
 

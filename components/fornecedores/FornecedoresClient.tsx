@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Phone, Globe } from "lucide-react";
 import FornecedorFormModal, { type FornecedorFormValues } from "./FornecedorFormModal";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { formatBRL } from "@/lib/finance/money";
+import { fetchOrToast } from "@/lib/utils/apiFetch";
 
 export interface FornecedorRowComputed extends FornecedorFormValues {
   id: string;
@@ -31,8 +32,9 @@ export default function FornecedoresClient({ fornecedores }: { fornecedores: For
 
   async function confirmDelete() {
     if (!deletingId) return;
-    await fetch(`/api/fornecedores/${deletingId}`, { method: "DELETE" });
+    const res = await fetchOrToast(`/api/fornecedores/${deletingId}`, { method: "DELETE" }, "Erro ao excluir fornecedor");
     setDeletingId(null);
+    if (!res) return;
     refresh();
   }
 

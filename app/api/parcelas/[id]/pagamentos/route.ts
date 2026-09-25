@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-import fs from "fs";
 import { randomUUID } from "crypto";
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { registrarPagamento } from "@/lib/db/repo";
-import { uploadsDir } from "@/lib/db";
+import { uploadComprovante } from "@/lib/storage/comprovantes";
+import { withApiError } from "@/lib/api/errors";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const POST = withApiError("POST /api/parcelas/[id]/pagamentos", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const ext = path.extname(file.name) || "";
       const filename = `${randomUUID()}${ext}`;
       const buffer = Buffer.from(await file.arrayBuffer());
-      fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+      await uploadComprovante(filename, buffer, file.type);
       comprovante_path = filename;
     }
   } else {
@@ -54,4 +54,4 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   return NextResponse.json({ id: pagamentoId });
-}
+});

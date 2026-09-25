@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { listCategoriaOrcamentos, setCategoriaOrcamento, updateWedding } from "@/lib/db/repo";
+import { withApiError } from "@/lib/api/errors";
 
-export async function GET() {
+export const GET = withApiError("GET /api/orcamento", async () => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   return NextResponse.json({
     wedding: ctx.wedding,
     categorias: await listCategoriaOrcamentos(ctx.wedding.id),
   });
-}
+});
 
-export async function PUT(req: NextRequest) {
+export const PUT = withApiError("PUT /api/orcamento", async (req: NextRequest) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = await req.json();
@@ -28,4 +29,4 @@ export async function PUT(req: NextRequest) {
     }
   }
   return NextResponse.json({ ok: true });
-}
+});

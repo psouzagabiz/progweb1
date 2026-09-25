@@ -4,6 +4,7 @@ import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { parseBRLToCents } from "@/lib/finance/money";
 import { FORMAS_PAGAMENTO } from "@/lib/finance/constants";
+import { fetchOrToast } from "@/lib/utils/apiFetch";
 
 export default function RegistrarPagamentoModal({
   open,
@@ -38,8 +39,9 @@ export default function RegistrarPagamentoModal({
     form.set("conta_cartao", conta);
     form.set("observacao", observacao);
     if (file) form.set("comprovante", file);
-    await fetch(`/api/parcelas/${parcelaId}/pagamentos`, { method: "POST", body: form });
+    const res = await fetchOrToast(`/api/parcelas/${parcelaId}/pagamentos`, { method: "POST", body: form }, "Erro ao registrar pagamento");
     setSaving(false);
+    if (!res) return;
     onSaved();
     onClose();
   }

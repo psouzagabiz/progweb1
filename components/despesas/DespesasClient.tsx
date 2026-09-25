@@ -7,6 +7,7 @@ import DespesaFormModal, { type DespesaFormValues } from "./DespesaFormModal";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { formatBRL } from "@/lib/finance/money";
 import { formatDateBR } from "@/lib/utils/dates";
+import { fetchOrToast } from "@/lib/utils/apiFetch";
 
 interface DespesaRow extends DespesaFormValues {
   id: string;
@@ -38,7 +39,8 @@ export default function DespesasClient({
   }
 
   async function openDelete(id: string) {
-    const res = await fetch(`/api/despesas/${id}`);
+    const res = await fetchOrToast(`/api/despesas/${id}`, undefined, "Erro ao carregar despesa");
+    if (!res) return;
     const data = await res.json();
     setImpact(data.impact);
     setDeletingId(id);
@@ -46,8 +48,9 @@ export default function DespesasClient({
 
   async function confirmDelete() {
     if (!deletingId) return;
-    await fetch(`/api/despesas/${deletingId}`, { method: "DELETE" });
+    const res = await fetchOrToast(`/api/despesas/${deletingId}`, { method: "DELETE" }, "Erro ao excluir despesa");
     setDeletingId(null);
+    if (!res) return;
     refresh();
   }
 

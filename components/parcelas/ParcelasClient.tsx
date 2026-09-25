@@ -10,6 +10,7 @@ import { formatBRL } from "@/lib/finance/money";
 import { formatDateBR } from "@/lib/utils/dates";
 import { STATUS_LABELS } from "@/lib/finance/constants";
 import { cn } from "@/lib/utils/cn";
+import { fetchOrToast } from "@/lib/utils/apiFetch";
 
 export interface ParcelaComputedRow {
   id: string;
@@ -50,12 +51,13 @@ export default function ParcelasClient({ parcelas }: { parcelas: ParcelaComputed
 
   async function handleCancel() {
     if (!cancelingId) return;
-    await fetch(`/api/parcelas/${cancelingId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cancelada: true }),
-    });
+    const res = await fetchOrToast(
+      `/api/parcelas/${cancelingId}`,
+      { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cancelada: true }) },
+      "Erro ao cancelar parcela"
+    );
     setCancelingId(null);
+    if (!res) return;
     refresh();
   }
 

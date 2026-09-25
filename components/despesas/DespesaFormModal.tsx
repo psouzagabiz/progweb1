@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import Modal from "@/components/ui/Modal";
 import { parseBRLToCents } from "@/lib/finance/money";
 import { CATEGORIAS_DESPESA, TIPOS_PAGAMENTO, PERIODICIDADES } from "@/lib/finance/constants";
@@ -90,18 +91,24 @@ export default function DespesaFormModal({
     };
     const url = values.id ? `/api/despesas/${values.id}` : "/api/despesas";
     const method = values.id ? "PUT" : "POST";
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    setSaving(false);
-    if (!res.ok) {
-      alert(`Erro ao salvar despesa: ${await res.text()}`);
-      return;
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        toast.error(`Erro ao salvar despesa: ${await res.text()}`);
+        return;
+      }
+      toast.success(values.id ? "Despesa atualizada" : "Despesa criada");
+      onSaved();
+      onClose();
+    } catch (err) {
+      toast.error(`Erro ao salvar despesa: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSaving(false);
     }
-    onSaved();
-    onClose();
   }
 
   return (

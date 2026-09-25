@@ -7,6 +7,7 @@ import {
   updateDespesa,
   type DespesaInput,
 } from "@/lib/db/repo";
+import { withApiError } from "@/lib/api/errors";
 
 function parseInput(body: Record<string, unknown>): DespesaInput {
   return {
@@ -27,16 +28,16 @@ function parseInput(body: Record<string, unknown>): DespesaInput {
   };
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const GET = withApiError("GET /api/despesas/[id]", async (_req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
   const d = await getDespesa(ctx.wedding.id, id);
   if (!d) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ ...d, impact: await despesaDeletionImpact(id) });
-}
+});
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const PUT = withApiError("PUT /api/despesas/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -44,12 +45,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const regenerar = body.regenerar_parcelas !== false;
   await updateDespesa(ctx.wedding.id, id, parseInput(body), regenerar);
   return NextResponse.json({ ok: true });
-}
+});
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export const DELETE = withApiError("DELETE /api/despesas/[id]", async (_req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireUserAndWedding();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
   await deleteDespesa(ctx.wedding.id, id);
   return NextResponse.json({ ok: true });
-}
+});

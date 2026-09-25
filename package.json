@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/pg": "^8.23.1",
     "@types/uuid": "^10.0.0",
@@ -23,6 +24,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "^3.10.1",
+    "sonner": "^2.0.8",
     "uuid": "^14.0.2"
   },
   "devDependencies": {
