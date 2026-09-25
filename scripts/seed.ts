@@ -1,11 +1,9 @@
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
-import { getDb } from "../lib/db";
+import type Database from "better-sqlite3";
 import { generateInstallments } from "../lib/finance/installments";
 
-function run() {
-  const db = getDb();
-
+export function seedDemoData(db: Database.Database) {
   const existingUser = db.prepare("SELECT id FROM users WHERE email = ?").get("joao.maria@exemplo.com") as
     | { id: string }
     | undefined;
@@ -158,4 +156,8 @@ function run() {
   console.log("Login de demonstração: joao.maria@exemplo.com / senha: casamento123");
 }
 
-run();
+if (require.main === module) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { getDb } = require("../lib/db");
+  seedDemoData(getDb());
+}

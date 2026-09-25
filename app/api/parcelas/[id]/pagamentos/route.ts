@@ -4,6 +4,7 @@ import fs from "fs";
 import { randomUUID } from "crypto";
 import { requireUserAndWedding } from "@/lib/auth/session";
 import { registrarPagamento } from "@/lib/db/repo";
+import { uploadsDir } from "@/lib/db";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireUserAndWedding();
@@ -27,8 +28,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     observacao = (form.get("observacao") as string) || "";
     const file = form.get("comprovante") as File | null;
     if (file && file.size > 0) {
-      const uploadsDir = path.join(process.cwd(), "uploads");
-      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
       const ext = path.extname(file.name) || "";
       const filename = `${randomUUID()}${ext}`;
       const buffer = Buffer.from(await file.arrayBuffer());

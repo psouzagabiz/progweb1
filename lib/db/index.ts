@@ -2,10 +2,18 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 
-const dataDir = path.join(process.cwd(), "data");
+// Vercel's serverless filesystem is read-only except for /tmp, and /tmp is
+// ephemeral (wiped between cold starts / across instances). We still use it
+// there so the app runs for demo/visualization purposes; outside Vercel
+// (local dev, a real server with persistent disk) we use a project-relative
+// ./data folder that actually persists.
+const isServerless = !!process.env.VERCEL;
+const baseDir = isServerless ? "/tmp/wedding-finance" : process.cwd();
+
+const dataDir = path.join(baseDir, "data");
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-const uploadsDir = path.join(process.cwd(), "uploads");
+export const uploadsDir = path.join(baseDir, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const dbPath = path.join(dataDir, "app.db");
@@ -17,11 +25,17 @@ declare global {
 
 export function getDb(): Database.Database {
   if (!global.__wfDb) {
+    const isNewDb = !fs.existsSync(dbPath);
     const db = new Database(dbPath);
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
     migrate(db);
     global.__wfDb = db;
+    if (isServerless && isNewDb) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { seedDemoData } = require("../../scripts/seed");
+      seedDemoData(db);
+    }
   }
   return global.__wfDb;
 }
